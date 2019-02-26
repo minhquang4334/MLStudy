@@ -163,7 +163,7 @@ def sgd_classification(X_train, y_train, X_test, y_test):
 def get_data(data, array_stop_words):
     documents = []
     for index in range(0, len(data)):
-        token = tokenizer(dataset.data[index])
+        token = tokenizer(data[index])
         documents.append(vietnamese_pre_processing(token, array_stop_words))
     return documents
 
@@ -177,8 +177,8 @@ array_stop_words = f.read().splitlines()
 X_train, y_train = dataset.data, dataset.target
 X_test, y_test = test_data.data, test_data.target
 
-# X_train = get_data(X_train, array_stop_words)
-# X_test = get_data(X_test, array_stop_words)
+X_train = get_data(X_train, array_stop_words)
+X_test = get_data(X_test, array_stop_words)
 
 tfidf = TfidfVectorizer()
 X_train = tfidf.fit_transform(X_train)
@@ -199,4 +199,4 @@ print(accuracy_score(y_test, predicted))
 elapsed_time = time.time() - start_time
 
 print "Total_Time for Excute: ", elapsed_time
-#
+
