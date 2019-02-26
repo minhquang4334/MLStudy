@@ -12,6 +12,8 @@ from pyvi import ViTokenizer, ViPosTagger
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import SGDClassifier
 import sys
 import gc
@@ -143,10 +145,8 @@ def sk_tf_idf(X):
 def logistic_regression(X_train, y_train, X_test, y_test):
     lr_clf = LogisticRegression(random_state=0, solver='lbfgs')
     lr_clf.fit(X_train, y_train)
-    print "X_test: ", (X_test)
 
     predicted = lr_clf.predict(X_test)
-    print "pre: ", len(predicted)
 
     np.mean(predicted == y_test)
     return predicted
@@ -177,23 +177,19 @@ array_stop_words = f.read().splitlines()
 X_train, y_train = dataset.data, dataset.target
 X_test, y_test = test_data.data, test_data.target
 
-X_train = get_data(X_train, array_stop_words)
-X_test = get_data(X_test, array_stop_words)
+# X_train = get_data(X_train, array_stop_words)
+# X_test = get_data(X_test, array_stop_words)
 
-# X_train = sk_tf_idf(X_train)
-# X_test = sk_tf_idf(X_test)
+tfidf = TfidfVectorizer()
+X_train = tfidf.fit_transform(X_train)
 
-tfidfconverter = TfidfVectorizer()
-X_train = tfidfconverter.fit_transform(X_train)
-X_train.shape
-X_test = tfidfconverter.transform(X_test)
-X_test.shape
+lr_clf = LogisticRegression(random_state=0, solver='lbfgs')
+lr_clf.fit(X_train, y_train)
 
+X_test = tfidf.transform(X_test)
+predicted = lr_clf.predict(X_test)
 
-
-# X = manual_compute_tf_idf(documents)
-
-predicted = sgd_classification(X_train, y_train, X_test, y_test)
+# predicted = logistic_regression(X_train, y_train, X_test, y_test)
 
 print predicted, y_test
 print(classification_report(y_test, predicted))
@@ -203,4 +199,4 @@ print(accuracy_score(y_test, predicted))
 elapsed_time = time.time() - start_time
 
 print "Total_Time for Excute: ", elapsed_time
-
+#
