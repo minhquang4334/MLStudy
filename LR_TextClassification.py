@@ -12,7 +12,12 @@ from pyvi import ViTokenizer, ViPosTagger
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import SGDClassifier
+import sys
+import gc
+import time
 
+start_time = time.time()
 
 documents = []
 
@@ -49,7 +54,8 @@ def vietnamese_pre_processing(text, stop_words):
     doc = re.sub(r'\d+', '', text)
     tmp = re.sub(r'\s+', ' ', doc, flags=re.I)
     temp = tmp.split()
-    result = " ".join([word for word in temp if is_not_in_stop_words(word, stop_words)])
+    generator = (word for word in temp if is_not_in_stop_words(word, stop_words))
+    result = " ".join(word for word in generator)
     return result.lower()
 
 
@@ -125,31 +131,34 @@ def manual_compute_tf_idf(docs):
             else:
                 arr.append(temp[word])
         arr_tf_idf.append(arr)
-
-    # print arr_tf_idf
+    gc.collect()
     return arr_tf_idf
 
 
 def sklearn_tf_idf(docs):
-    print len(docs)
-    tfidfconverter = TfidfVectorizer()
+    tfidfconverter = TfidfVectorizer(max_features=1500, min_df=5, max_df=0.7)
     x = tfidfconverter.fit_transform(docs).toarray()
 
     return x
 
 
 def logistic_regression(X_train, y_train, X_test, y_test):
-    lr_clf = LogisticRegression(penalty='l2', dual=False, tol=1e-5, C=1.0,
-                 fit_intercept=True, intercept_scaling=1, class_weight=None,
-                 random_state=None, solver='warn', max_iter=100,
-                 multi_class='warn', verbose=0, warm_start=False, n_jobs=None)
+    lr_clf = LogisticRegression(random_state=0, solver='lbfgs')
     lr_clf.fit(X_train, y_train)
     predicted = lr_clf.predict(X_test)
     np.mean(predicted == y_test)
     return predicted
 
 
-dataset = get_datasets_localdata("../dataset1/sub_train/")
+def sgd_classification(X_train, y_train, X_test, y_test):
+    sgd_clf = SGDClassifier()
+    sgd_clf.fit(X_train, y_train)
+    predicted = sgd_clf.predict(X_test)
+    np.mean(predicted == y_test)
+    return predicted
+
+
+dataset = get_datasets_localdata("../dataset1/train/")
 
 y = dataset.target
 
@@ -161,16 +170,22 @@ for index in range(0, len(dataset.data)):
     documents.append(vietnamese_pre_processing(token, array_stop_words))
     # print type(dataset.data[index])
 
+print len(documents)
 X = sklearn_tf_idf(documents)
 
 # X = manual_compute_tf_idf(documents)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
-predicted = logistic_regression(X_train, y_train, X_test, y_test)
+predicted = sgd_classification(X_train, y_train, X_test, y_test)
+
 print predicted, y_test
 print(confusion_matrix(y_test, predicted))
 print(classification_report(y_test, predicted))
 print(accuracy_score(y_test, predicted))
 
+
+elapsed_time = time.time() - start_time
+
+print "Total_Time for Excute: ", elapsed_time
 
