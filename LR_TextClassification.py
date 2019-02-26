@@ -19,7 +19,6 @@ import time
 
 start_time = time.time()
 
-documents = []
 
 
 def get_datasets_localdata(container_path=None, categories=None, load_content=True,
@@ -158,26 +157,32 @@ def sgd_classification(X_train, y_train, X_test, y_test):
     return predicted
 
 
-dataset = get_datasets_localdata("../dataset1/train/")
+def get_data(data, array_stop_words):
+    documents = []
+    for index in range(0, len(dataset.data)):
+        token = tokenizer(dataset.data[index])
+        documents.append(vietnamese_pre_processing(token, array_stop_words))
+    return documents
 
-y = dataset.target
+
+dataset = get_datasets_localdata("../dataset1/sub_train/")
+test_data = get_datasets_localdata("../dataset1/test/")
 
 f = io.open('./stopwords.txt', 'r')
 array_stop_words = f.read().splitlines()
 
-for index in range(0, len(dataset.data)):
-    token = tokenizer(dataset.data[index])
-    documents.append(vietnamese_pre_processing(token, array_stop_words))
-    # print type(dataset.data[index])
+X_train, y_train = dataset.data, dataset.target
+X_test, y_test = test_data.data, test_data.target
 
-print len(documents)
-X = sklearn_tf_idf(documents)
+X_train = get_data(X_train, array_stop_words)
+X_test = get_data(X_test, array_stop_words)
+
+X_train = sklearn_tf_idf(X_train)
+X_test = sklearn_tf_idf(X_test)
 
 # X = manual_compute_tf_idf(documents)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-predicted = sgd_classification(X_train, y_train, X_test, y_test)
+predicted = logistic_regression(X_train, y_train, X_test, y_test)
 
 print predicted, y_test
 print(confusion_matrix(y_test, predicted))
