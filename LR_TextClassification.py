@@ -134,13 +134,6 @@ def manual_compute_tf_idf(docs):
     return arr_tf_idf
 
 
-def sklearn_tf_idf(docs):
-    tfidfconverter = TfidfVectorizer(max_features=1500, min_df=5, max_df=0.7)
-    x = tfidfconverter.fit_transform(docs).toarray()
-
-    return x
-
-
 def logistic_regression(X_train, y_train, X_test, y_test):
     lr_clf = LogisticRegression(random_state=0, solver='lbfgs')
     lr_clf.fit(X_train, y_train)
@@ -177,15 +170,15 @@ X_test, y_test = test_data.data, test_data.target
 X_train = get_data(X_train, array_stop_words)
 X_test = get_data(X_test, array_stop_words)
 
-X_train = sklearn_tf_idf(X_train)
-X_test = sklearn_tf_idf(X_test)
+tfidfconverter = TfidfVectorizer(max_features=1500, min_df=5, max_df=0.7)
+X_train = tfidfconverter.fit_transform(X_train).toarray()
+X_test = tfidfconverter.fit_transform(X_test).toarray()
+
 
 # X = manual_compute_tf_idf(documents)
 
 predicted = logistic_regression(X_train, y_train, X_test, y_test)
 
-print predicted, y_test
-print(confusion_matrix(y_test, predicted))
 print(classification_report(y_test, predicted))
 print(accuracy_score(y_test, predicted))
 
