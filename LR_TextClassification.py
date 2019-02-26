@@ -134,10 +134,19 @@ def manual_compute_tf_idf(docs):
     return arr_tf_idf
 
 
+def sk_tf_idf(X):
+    tfidfconverter = TfidfVectorizer(max_features=1500, min_df=5, max_df=0.7)
+    X = tfidfconverter.fit_transform(X).toarray()
+    return X
+
+
 def logistic_regression(X_train, y_train, X_test, y_test):
     lr_clf = LogisticRegression(random_state=0, solver='lbfgs')
     lr_clf.fit(X_train, y_train)
     predicted = lr_clf.predict(X_test)
+    print "X_test: ",len(X_test)
+    print "pre: ", len(predicted)
+
     np.mean(predicted == y_test)
     return predicted
 
@@ -152,14 +161,14 @@ def sgd_classification(X_train, y_train, X_test, y_test):
 
 def get_data(data, array_stop_words):
     documents = []
-    for index in range(0, len(dataset.data)):
+    for index in range(0, len(data)):
         token = tokenizer(dataset.data[index])
         documents.append(vietnamese_pre_processing(token, array_stop_words))
     return documents
 
 
 dataset = get_datasets_localdata("../dataset1/sub_train/")
-test_data = get_datasets_localdata("../dataset1/test/")
+test_data = get_datasets_localdata("../dataset1/test_sub_train/")
 
 f = io.open('./stopwords.txt', 'r')
 array_stop_words = f.read().splitlines()
@@ -170,15 +179,15 @@ X_test, y_test = test_data.data, test_data.target
 X_train = get_data(X_train, array_stop_words)
 X_test = get_data(X_test, array_stop_words)
 
-tfidfconverter = TfidfVectorizer(max_features=1500, min_df=5, max_df=0.7)
-X_train = tfidfconverter.fit_transform(X_train).toarray()
-X_test = tfidfconverter.fit_transform(X_test).toarray()
+X_train = sk_tf_idf(X_train)
+X_test = sk_tf_idf(X_test)
 
 
 # X = manual_compute_tf_idf(documents)
 
-predicted = logistic_regression(X_train, y_train, X_test, y_test)
+predicted = sgd_classification(X_train, y_train, X_test, y_test)
 
+print predicted, y_test
 print(classification_report(y_test, predicted))
 print(accuracy_score(y_test, predicted))
 
