@@ -143,8 +143,9 @@ def sk_tf_idf(X):
 def logistic_regression(X_train, y_train, X_test, y_test):
     lr_clf = LogisticRegression(random_state=0, solver='lbfgs')
     lr_clf.fit(X_train, y_train)
+    print "X_test: ", (X_test)
+
     predicted = lr_clf.predict(X_test)
-    print "X_test: ",len(X_test)
     print "pre: ", len(predicted)
 
     np.mean(predicted == y_test)
@@ -179,8 +180,15 @@ X_test, y_test = test_data.data, test_data.target
 X_train = get_data(X_train, array_stop_words)
 X_test = get_data(X_test, array_stop_words)
 
-X_train = sk_tf_idf(X_train)
-X_test = sk_tf_idf(X_test)
+# X_train = sk_tf_idf(X_train)
+# X_test = sk_tf_idf(X_test)
+
+tfidfconverter = TfidfVectorizer()
+X_train = tfidfconverter.fit_transform(X_train)
+X_train.shape
+X_test = tfidfconverter.transform(X_test)
+X_test.shape
+
 
 
 # X = manual_compute_tf_idf(documents)
