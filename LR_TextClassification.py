@@ -6,7 +6,6 @@ import numpy as np
 import re
 import io
 from sklearn.datasets import load_files
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from pyvi import ViTokenizer, ViPosTagger
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
@@ -20,7 +19,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 
 from sklearn.linear_model import SGDClassifier
-import sys
+from sklearn.externals import joblib
+
 import gc
 import time
 import pickle
@@ -58,7 +58,7 @@ def is_not_in_stop_words(word, stop_words):
 def vietnamese_pre_processing(text, stop_words):
     text = translate_non_alphanumerics(text, u" ")
     doc = re.sub(r'\d+', '', text)
-    tmp = re.sub(r'\s+', ' ', doc, flags=re.I)
+    tmp = re.sub(r'\s+', ' ', text, flags=re.I)
     temp = tmp.split()
     generator = (word for word in temp if is_not_in_stop_words(word, stop_words))
     result = " ".join(word for word in generator)
@@ -66,7 +66,7 @@ def vietnamese_pre_processing(text, stop_words):
 
 
 def tokenizer(str):
-    return ViTokenizer.tokenize(str)
+    return (ViTokenizer.tokenize(str))
 
 
 def total_words_in_document(document):
@@ -141,14 +141,15 @@ def manual_compute_tf_idf(docs):
     return arr_tf_idf
 
 
-def sk_tf_idf(X):
-    tfidfconverter = TfidfVectorizer(max_features=1500, min_df=5, max_df=0.7)
-    X = tfidfconverter.fit_transform(X).toarray()
-    return X
-
-
 def logistic_regression(X_train, y_train, X_test, y_test):
-    lr_clf = LogisticRegression(random_state=0, solver='lbfgs')
+    lr_clf = LogisticRegression(C=1.2,
+                           max_iter=100,
+                           fit_intercept=False,
+                           n_jobs=3,
+                           random_state=0,
+                           solver='lbfgs',
+                           multi_class='multinomial'
+                        )
     lr_clf.fit(X_train, y_train)
 
     predicted = lr_clf.predict(X_test)
@@ -222,7 +223,7 @@ X_train = tfidf.fit_transform(X_train)
 
 X_test = tfidf.transform(X_test)
 
-predicted, classifier = neural_network(X_train, y_train, X_test, y_test)
+predicted, classifier = logistic_regression(X_train, y_train, X_test, y_test)
 
 # predicted = logistic_regression(X_train, y_train, X_test, y_test)
 
@@ -235,5 +236,5 @@ elapsed_time = time.time() - start_time
 
 print "Total_Time for Excute: ", elapsed_time
 
-with open('text_classifier', 'wb') as picklefile:
-    pickle.dump(classifier, picklefile)
+with open('text_classifier.sav', 'wb') as joblibfile:
+    joblib.dump(classifier, joblibfile)
