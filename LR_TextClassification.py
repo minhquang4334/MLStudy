@@ -14,11 +14,16 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
+
 from sklearn.linear_model import SGDClassifier
 import sys
 import gc
 import time
-
+import pickle
 start_time = time.time()
 
 
@@ -149,7 +154,7 @@ def logistic_regression(X_train, y_train, X_test, y_test):
     predicted = lr_clf.predict(X_test)
 
     np.mean(predicted == y_test)
-    return predicted
+    return predicted, lr_clf
 
 
 def sgd_classification(X_train, y_train, X_test, y_test):
@@ -157,7 +162,39 @@ def sgd_classification(X_train, y_train, X_test, y_test):
     sgd_clf.fit(X_train, y_train)
     predicted = sgd_clf.predict(X_test)
     np.mean(predicted == y_test)
-    return predicted
+    return predicted, sgd_clf
+
+
+def random_forest(X_train, y_train, X_test, y_test):
+    rf_clf = RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)
+    rf_clf.fit(X_train, y_train)
+    predicted = rf_clf.predict(X_test)
+    np.mean(predicted == y_test)
+    return predicted, rf_clf
+
+
+def naive_bayes(X_train, y_train, X_test, y_test):
+    nb_clf = MultinomialNB()
+    nb_clf.fit(X_train, y_train)
+    predicted = nb_clf.predict(X_test)
+    np.mean(predicted == y_test)
+    return predicted, nb_clf
+
+
+def k_neighbors(X_train, y_train, X_test, y_test):
+    kn_clf = KNeighborsClassifier(3)
+    kn_clf.fit(X_train, y_train)
+    predicted = kn_clf.predict(X_test)
+    np.mean(predicted == y_test)
+    return predicted, kn_clf
+
+
+def neural_network(X_train, y_train, X_test, y_test):
+    kn_clf = MLPClassifier(alpha=1)
+    kn_clf.fit(X_train, y_train)
+    predicted = kn_clf.predict(X_test)
+    np.mean(predicted == y_test)
+    return predicted, kn_clf
 
 
 def get_data(data, array_stop_words):
@@ -183,11 +220,9 @@ X_test = get_data(X_test, array_stop_words)
 tfidf = TfidfVectorizer()
 X_train = tfidf.fit_transform(X_train)
 
-lr_clf = LogisticRegression(random_state=0, solver='lbfgs')
-lr_clf.fit(X_train, y_train)
-
 X_test = tfidf.transform(X_test)
-predicted = lr_clf.predict(X_test)
+
+predicted, classifier = neural_network(X_train, y_train, X_test, y_test)
 
 # predicted = logistic_regression(X_train, y_train, X_test, y_test)
 
@@ -200,3 +235,5 @@ elapsed_time = time.time() - start_time
 
 print "Total_Time for Excute: ", elapsed_time
 
+with open('text_classifier', 'wb') as picklefile:
+    pickle.dump(classifier, picklefile)
