@@ -75,136 +75,15 @@ def total_words_in_document(document):
     return len(document.split(' '))
 
 
-def compute_tf(word_dict, total_words):
-    tf_dict = {}
-    for word, count in word_dict.items():
-        tf_dict[word] = count/float(total_words)
-    return tf_dict
-
-
-def compute_idf(doc_list):
-    import math
-    idf_dict = {}
-    n = len(doc_list)
-    # print doc_list[0].keys()
-
-    for doc in doc_list:
-        for word, val in doc.items():
-            if val > 0:
-                if word in idf_dict:
-                    idf_dict[word] = idf_dict[word] + 1
-                else:
-                    idf_dict[word] = 1
-
-    for word, val in idf_dict.items():
-        idf_dict[word] = math.log10(1 + n / float(val))
-
-    return idf_dict
-
-
-def compute_tf_idf(tf, idfs):
-    tf_idf = {}
-    for word, val in tf.items():
-        tf_idf[word] = val * idfs[word]
-
-    return tf_idf
-
-
-def manual_compute_tf_idf(docs):
-    tf = []
-    corpus = []
-    v_dict = {}
-    for i in range(0, len(docs)):
-        arr_words = docs[i].split()
-        dict_words = dict.fromkeys(arr_words, 0)
-        for word in arr_words:
-            dict_words[word] += 1
-            v_dict[word] = 0
-
-        corpus.append(dict_words)
-        tf.append(compute_tf(dict_words, len(arr_words)))
-
-    idf = compute_idf(corpus)
-    tf_idf = []
-    for i in range(0, len(tf)):
-        tf_idf.append(compute_tf_idf(tf[i], idf))
-
-    arr_tf_idf = []
-    for i in range(0, len(tf_idf)):
-        temp = tf_idf[i]
-        arr = []
-        for word, val in v_dict.items():
-            if word not in temp:
-                arr.append(0)
-            else:
-                arr.append(temp[word])
-        arr_tf_idf.append(arr)
-    gc.collect()
-    return arr_tf_idf
-
-
-def logistic_regression(X_train, y_train, X_test, y_test):
-    lr_clf = LogisticRegressionCV(
-                            cv=5,
-                           max_iter=100,
-                           fit_intercept=False,
-                           random_state=42,
-                           solver='lbfgs',
-                        )
-    lr_clf.fit(X_train, y_train)
-
-    predicted = lr_clf.predict(X_test)
-
-    np.mean(predicted == y_test)
-    return predicted, lr_clf
-
-
-def sgd_classification(X_train, y_train, X_test, y_test):
-    sgd_clf = SGDClassifier()
-    sgd_clf.fit(X_train, y_train)
-    predicted = sgd_clf.predict(X_test)
-    np.mean(predicted == y_test)
-    return predicted, sgd_clf
-
-
-def random_forest(X_train, y_train, X_test, y_test):
-    rf_clf = RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)
-    rf_clf.fit(X_train, y_train)
-    predicted = rf_clf.predict(X_test)
-    np.mean(predicted == y_test)
-    return predicted, rf_clf
-
-
-def naive_bayes(X_train, y_train, X_test, y_test):
-    nb_clf = MultinomialNB()
-    nb_clf.fit(X_train, y_train)
-    predicted = nb_clf.predict(X_test)
-    np.mean(predicted == y_test)
-    return predicted, nb_clf
-
-
-def k_neighbors(X_train, y_train, X_test, y_test):
-    kn_clf = KNeighborsClassifier(3)
-    kn_clf.fit(X_train, y_train)
-    predicted = kn_clf.predict(X_test)
-    np.mean(predicted == y_test)
-    return predicted, kn_clf
-
-
 def svm_classification(X_train, y_train, X_test, y_test):
-    svm_clf = svm.SVC(gamma='scale')
+    svm_clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
+    decision_function_shape='ovr', degree=3, gamma=1, kernel='rbf',
+    max_iter=-1, probability=False, random_state=None, shrinking=True,
+    tol=0.001, verbose=False)
     svm_clf.fit(X_train, y_train)
     predicted = svm_clf.predict(X_test)
     np.mean(predicted == y_test)
     return predicted, svm_clf
-
-
-def neural_network(X_train, y_train, X_test, y_test):
-    kn_clf = MLPClassifier(alpha=1)
-    kn_clf.fit(X_train, y_train)
-    predicted = kn_clf.predict(X_test)
-    np.mean(predicted == y_test)
-    return predicted, kn_clf
 
 
 def get_data(data, array_stop_words):
@@ -232,7 +111,7 @@ X_train = tfidf.fit_transform(X_train)
 
 X_test = tfidf.transform(X_test)
 
-predicted, classifier = logistic_regression(X_train, y_train, X_test, y_test)
+predicted, classifier = svm_classification(X_train, y_train, X_test, y_test)
 
 # predicted = logistic_regression(X_train, y_train, X_test, y_test)
 
@@ -244,14 +123,4 @@ print(accuracy_score(y_test, predicted))
 elapsed_time = time.time() - start_time
 
 print "Total_Time for Excute: ", elapsed_time
-
-test = ['quang', 'hoang', 'dep', 'trai']
-with open('text_classifier.sav', 'wb') as joblibfile:
-    joblib.dump(classifier, joblibfile)
-
-joblibfile.close()
-
-joblib_model = joblib.load('text_classifier.sav')
-score = joblib_model.score(X_test, y_test),
-print score
 

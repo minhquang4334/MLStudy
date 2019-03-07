@@ -25,15 +25,15 @@ def get_datasets_localdata(container_path=None, categories=None, load_content=Tr
     return datasets
 
 
-pickled_model, pickled_Xtrain, pickled_Ytrain, pickled_score = pickle.load(open('text_classifier.sav', 'rb'))
+model = joblib.load('text_classifier.sav')
 
 test_data = get_datasets_localdata("../dataset1/test_sub_train/")
 X_test, y_test = test_data.data, test_data.target
 
-print pickled_model.score(X_test, y_test)
-# y_pred2 = model.score(X_test, y_test)
-# print "y_pred: ", y_pred2
-#
-# print(confusion_matrix(y_test, y_pred2))
-# print(classification_report(y_test, y_pred2))
-# print(accuracy_score(y_test, y_pred2))
+# print model.predict(X_test)
+y_pred2 = model.score(X_test, y_test)
+print "y_pred: ", y_pred2
+
+print(confusion_matrix(y_test, y_pred2))
+print(classification_report(y_test, y_pred2))
+print(accuracy_score(y_test, y_pred2))
