@@ -94,7 +94,7 @@ data = open('data.txt').read()
 #
 predictors, label, max_sequence_len, total_words = dataset_preparation(data)
 print max_sequence_len
-# model = create_model(predictors, label, max_sequence_len, total_words)
-# model.save('lstm.h5')
-model= load_model('lstm.h5')
+model = create_model(predictors, label, max_sequence_len, total_words)
+model.save('lstm.h5')
+# model= load_model('lstm.h5')
 print generate_text("Thúy Kiều", 6, max_sequence_len)
