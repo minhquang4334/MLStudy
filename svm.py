@@ -76,8 +76,8 @@ def total_words_in_document(document):
 
 
 def svm_classification(X_train, y_train, X_test, y_test):
-    svm_clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
-    decision_function_shape='ovr', degree=3, gamma=1, kernel='rbf',
+    svm_clf = svm.SVC(C=10.0, cache_size=200, class_weight=None, coef0=0.0,
+    decision_function_shape='ovo', degree=2, gamma=1, kernel='linear',
     max_iter=-1, probability=False, random_state=None, shrinking=True,
     tol=0.001, verbose=False)
     svm_clf.fit(X_train, y_train)
@@ -115,7 +115,7 @@ predicted, classifier = svm_classification(X_train, y_train, X_test, y_test)
 
 # predicted = logistic_regression(X_train, y_train, X_test, y_test)
 
-print predicted, y_test
+print predicted, '\n', y_test
 print(classification_report(y_test, predicted))
 print(accuracy_score(y_test, predicted))
 
